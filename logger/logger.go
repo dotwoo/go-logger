@@ -121,7 +121,22 @@ func mkdirlog(dir string) (e error) {
 	return
 }
 
-func console(s ...interface{}) {
+func sPrintf(s ...interface{}) string {
+
+	if len(s) < 2 {
+		return fmt.Sprint(s...)
+	}
+	fm, ok := s[0].(string)
+	if !ok {
+		log.Println("no fmt")
+		return fmt.Sprint(s...)
+	}
+	return fmt.Sprintf(fm, s[1:]...)
+
+}
+
+func console(tag string, s ...interface{}) {
+
 	if consoleAppender {
 		_, file, line, _ := runtime.Caller(2)
 		short := file
@@ -132,7 +147,7 @@ func console(s ...interface{}) {
 			}
 		}
 		file = short
-		log.Println(file, strconv.Itoa(line), s)
+		log.Println(file, strconv.Itoa(line), tag, sPrintf(s...))
 	}
 }
 
@@ -154,12 +169,13 @@ func Debug(v ...interface{}) {
 
 	if logLevel <= DEBUG {
 		if logObj != nil {
-			logObj.lg.Output(2, fmt.Sprintln("debug", v))
+			logObj.lg.Output(2, fmt.Sprintln("[debug]", sPrintf(v...)))
 		}
-		console("debug", v)
+		console("[debug]", v...)
 	}
 }
 func Info(v ...interface{}) {
+
 	if dailyRolling {
 		fileCheck()
 	}
@@ -170,9 +186,9 @@ func Info(v ...interface{}) {
 	}
 	if logLevel <= INFO {
 		if logObj != nil {
-			logObj.lg.Output(2, fmt.Sprintln("info", v))
+			logObj.lg.Output(2, fmt.Sprintln("[info]", sPrintf(v...)))
 		}
-		console("info", v)
+		console("[info]", v...)
 	}
 }
 func Warn(v ...interface{}) {
@@ -187,9 +203,9 @@ func Warn(v ...interface{}) {
 
 	if logLevel <= WARN {
 		if logObj != nil {
-			logObj.lg.Output(2, fmt.Sprintln("warn", v))
+			logObj.lg.Output(2, fmt.Sprintln("[warn]", sPrintf(v...)))
 		}
-		console("warn", v)
+		console("[warn]", v...)
 	}
 }
 func Error(v ...interface{}) {
@@ -203,9 +219,9 @@ func Error(v ...interface{}) {
 	}
 	if logLevel <= ERROR {
 		if logObj != nil {
-			logObj.lg.Output(2, fmt.Sprintln("error", v))
+			logObj.lg.Output(2, fmt.Sprintln("[error]", sPrintf(v...)))
 		}
-		console("error", v)
+		console("[error]", v...)
 	}
 }
 func Fatal(v ...interface{}) {
@@ -219,9 +235,9 @@ func Fatal(v ...interface{}) {
 	}
 	if logLevel <= FATAL {
 		if logObj != nil {
-			logObj.lg.Output(2, fmt.Sprintln("fatal", v))
+			logObj.lg.Output(2, fmt.Sprintln("[fatal]", sPrintf(v...)))
 		}
-		console("fatal", v)
+		console("[fatal]", v...)
 	}
 }
 
@@ -280,7 +296,6 @@ func (f *_FILE) coverNextOne() {
 }
 
 func fileSize(file string) int64 {
-	fmt.Println("fileSize", file)
 	f, e := os.Stat(file)
 	if e != nil {
 		fmt.Println(e.Error())
